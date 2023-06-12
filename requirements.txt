@@ -1,12 +1,11 @@
-PyQt5<=5.13.1
+PySide2
 dbdicom
 matplotlib
 numpy
 pandas
 importlib-resources>=1.1.0
-opencv-python<=4.5.3.56
+opencv-python
 scikit-image
 scipy
 pyinstaller
-SimpleITK
-itk-elastix
+openpyxl

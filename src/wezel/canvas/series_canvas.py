@@ -39,16 +39,21 @@ class SeriesCanvas(canvas.Canvas):
             self._model.colormap(),
         )
 
+    def setBlank(self):
+        self._model.setArray()
+        super().setBlank()
+
     def changeArray(self, array, uid, center, width, colormap):
 
         # Save current mask
-        bin = self.maskItem.bin()
-        if bin is not None:
-            if self._model._regions == []:
-                self.addRegion()
-                if self.toolBar is not None:
-                    self.toolBar.newRegion()
-        self._model.setMask(bin)
+        if self.maskItem is not None:
+            bin = self.maskItem.bin()
+            if bin is not None:
+                if self._model._regions == []:
+                    self.addRegion()
+                    if self.toolBar is not None:
+                        self.toolBar.newRegion()
+            self._model.setMask(bin)
 
         # update toolbar and display
         self._model.setArray(uid, center, width, colormap)
@@ -117,6 +122,8 @@ class SeriesCanvas(canvas.Canvas):
 
     def setColormap(self, cmap=None):
         super().setColormap(cmap)
+        if self.imageItem is None:
+            return
         self._model._cmap[self._model._currentImage] = cmap
         self._model._lut[self._model._currentImage] = self.imageItem._lut
 
@@ -145,23 +152,35 @@ class SeriesCanvasModel:
         self._currentImage = None # uid
 
     def center(self):
+        if self._currentImage is None:
+            return
         return self._center[self._currentImage]
 
     def width(self):
+        if self._currentImage is None:
+            return
         return self._width[self._currentImage]
 
     def lut(self):
+        if self._currentImage is None:
+            return
         return self._lut[self._currentImage]
 
     def colormap(self):
+        if self._currentImage is None:
+            return
         return self._cmap[self._currentImage]
 
     def setWindow(self, center, width):
+        if self._currentImage is None:
+            return
         self._center[self._currentImage] = center
         self._width[self._currentImage] = width
 
-    def setArray(self, uid, center, width, colormap):
+    def setArray(self, uid=None, center=None, width=None, colormap=None):
         self._currentImage = uid
+        if uid is None:
+            return
         if uid in self._center.keys():
             return
         self._center[uid] = center
@@ -177,6 +196,8 @@ class SeriesCanvasModel:
     def mask(self):
         if self._currentRegion is None:
             return
+        if self._currentImage is None:
+            return
         if self._currentImage in self._currentRegion:
             return self._currentRegion[self._currentImage]
 
@@ -184,6 +205,8 @@ class SeriesCanvasModel:
         if bin is None:
             return
         if self._currentRegion is None:
+            return
+        if self._currentImage is None:
             return
         self._currentRegion[self._currentImage] = bin
         
@@ -275,31 +298,40 @@ class SeriesCanvasModel:
     def loadRegion(self):
         # Build list of series for all series in the same study
         seriesList = self._series.parent().children()
-        seriesLabels = [series.instance().SeriesDescription for series in seriesList]
         # Ask the user to select series to import as regions
         input = widgets.UserInput(
-            {"label":"Series:", "type":"listview", "list": seriesLabels}, 
+            {"label":"Import as mask:", "type":"select records", "options": seriesList}, 
             title = "Please select regions to load")
         if input.cancel:
             return
-        seriesList = [seriesList[i] for i in input.values[0]["value"]]
-        seriesLabels = [seriesLabels[i] for i in input.values[0]["value"]]
-        suffix = ' mapped to ' + self._series.instance().SeriesDescription
         # Overlay each of the selected series on the displayed series
-        for s, series in enumerate(seriesList):
-            # Create overlay
-            #region, images = series.map_mask_to(self._series)
-            region, images = scipy.map_mask_to(series, self._series)
-            # Add new region
-            newRegion = {'name': seriesLabels[s] + suffix, 'color': self.newColor()}
-            if isinstance(region, list): # If self._series has multiple slice groups
-                for r, reg in enumerate(region):
-                    for i, image in np.ndenumerate(images[r]):
-                        if image is not None:
-                            newRegion[image.SOPInstanceUID] = reg[:,:,i[0]] != 0
+        for series in input.values[0]:
+            try:
+                # Add new region
+                newRegion = {
+                    'name': series.instance().SeriesDescription, 
+                    'color': self.newColor()}
+                # Create overlay
+                region, images = scipy.mask_array(series, on=self._series)
+                _add_slice_groups_to(newRegion, region, images)
+            except:
+                self._series.dialog.error()
             else:
-                for i, image in np.ndenumerate(images):
-                    if image is not None:
-                        newRegion[image.SOPInstanceUID] = region[:,:,i[0]] != 0
-            self._regions.append(newRegion)
-            self._currentRegion = newRegion
+                self._regions.append(newRegion)
+                self._currentRegion = newRegion
+
+def _add_slice_groups_to(newRegion, region, images):
+    if isinstance(region, list): 
+        # If self._series has multiple slice groups
+        for r, reg in enumerate(region):
+            _add_to(newRegion, reg, images[r])
+    else:
+        # Single slice group only
+        _add_to(newRegion, region, images)
+
+def _add_to(newRegion, region, images):
+    for i, image in np.ndenumerate(images):
+        if image is not None:
+            mask = region[:,:,i[0],i[1]] 
+            if np.count_nonzero(mask) > 0:
+                newRegion[image.SOPInstanceUID] = mask != 0

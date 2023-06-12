@@ -1,10 +1,10 @@
 import numpy as np
 
-from PyQt5.QtWidgets import (
+from PySide2.QtWidgets import (
     QWidget, QGridLayout, 
     QToolBar, QAction, QMenu,
     QActionGroup, QFrame)
-from PyQt5.QtGui import QIcon
+from PySide2.QtGui import QIcon
 
 from wezel import canvas, icons, widgets
 
@@ -26,7 +26,9 @@ def defaultFilters():
         canvas.MaskPenSet(mode='catch'),
         canvas.MaskDilate(),
         canvas.MaskShrink(),
-        canvas.MaskKidneyEdgeDetection(),
+        canvas.MaskWand(),
+        canvas.MaskMove(),
+        #canvas.MaskKidneyEdgeDetection(),
     ]
 
 
@@ -43,7 +45,7 @@ class ToolBar(QWidget):
 
         # Define UI elements
         self.regionList = widgets.RegionList(layout=None)
-        self.window = widgets.ImageWindow(layout=False)
+        self.window = widgets.ImageWindow()
         self.actionFitItem = QAction(QIcon(icons.magnifier_zoom_fit), 'Fit in view', self)
         self.menuZoomToScale = self.menuZoomTo()
         self.actionZoomTo = QAction(QIcon(icons.magnifier_zoom_actual), 'Zoom to..', self)
@@ -131,7 +133,7 @@ class ToolBar(QWidget):
         if array is None:
             return
         self.setEditMaskEnabled()
-        if self.window.mode.isLocked:
+        if self.window.isLocked():
             v = self.window.getValue()
             cmap = self.filters[2].getColorMap()
             self.canvas.setWindow(v[0], v[1])
@@ -143,15 +145,20 @@ class ToolBar(QWidget):
     def setEditMaskEnabled(self, enable=None):
         if enable is None:
             item = self.canvas.maskItem
-            undoEnable = item._current!=0 and item._current is not None
-            redoEnable = item._current!=len(item._bin)-1 and item._current is not None
-            # Small bug here - does not reset properly when slices
-            # are changed. Skipping for now..
-            # if item.bin() is None:
-            #     eraseEnable = False
-            # else:
-            #     eraseEnable = item.bin().any()
-            eraseEnable = True
+            if item is None:
+                undoEnable = False
+                redoEnable = False
+                eraseEnable = False
+            else:
+                undoEnable = item._current!=0 and item._current is not None
+                redoEnable = item._current!=len(item._bin)-1 and item._current is not None
+                # Small bug here - does not reset properly when slices
+                # are changed. Skipping for now..
+                # if item.bin() is None:
+                #     eraseEnable = False
+                # else:
+                #     eraseEnable = item.bin().any()
+                eraseEnable = True
         else:
             undoEnable = enable
             redoEnable = enable
@@ -162,18 +169,24 @@ class ToolBar(QWidget):
 
     def undo(self):
         item = self.canvas.maskItem
+        if item is None:
+            return
         item.undo()
         self.canvas.saveMask()
         self.setEditMaskEnabled()
 
     def redo(self):
         item = self.canvas.maskItem
+        if item is None:
+            return
         item.redo()
         self.canvas.saveMask()
         self.setEditMaskEnabled()
 
     def erase(self):
         item = self.canvas.maskItem
+        if item is None:
+            return
         item.erase()
         self.canvas.saveMask()
         self.setEditMaskEnabled()
@@ -284,8 +297,10 @@ class ToolBarView():
         w = QToolBar()
         w.addAction(toolBar.filters[2].actionPick)
         framegrid.addWidget(w,0,2)
-        framegrid.addWidget(toolBar.window.brightness.spinBox, 1, 0, 1, 3)
-        framegrid.addWidget(toolBar.window.contrast.spinBox, 2, 0, 1, 3)
+        #framegrid.addWidget(toolBar.window.spinBox(1), 1, 0, 1, 3)
+        #framegrid.addWidget(toolBar.window.spinBox(0), 2, 0, 1, 3)
+        framegrid.addWidget(toolBar.window.upper, 1, 0, 1, 3)
+        framegrid.addWidget(toolBar.window.lower, 2, 0, 1, 3)
         frame.setLayout(framegrid)
         return frame
     
@@ -362,6 +377,9 @@ class ToolBarView():
         w = QToolBar()
         w.addAction(toolBar.filters[15].actionPick)
         framegrid.addWidget(w,5,0)
+        w = QToolBar()
+        w.addAction(toolBar.filters[16].actionPick)
+        framegrid.addWidget(w,5,1)
         frame.setLayout(framegrid)
         return frame
 

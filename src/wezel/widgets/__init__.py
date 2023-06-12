@@ -8,15 +8,9 @@ in `wezel` applications.
 
 from .dbimage import (
     ImageWindow,
-    ImageBrightness, 
-    ImageContrast,
 )
 from .series_sliders import (
     SeriesSliders,
-)
-from .series_display import (
-    SeriesDisplay,
-    SeriesDisplay4D,
 )
 from .plot_curve import (
     PlotCurve,
@@ -35,6 +29,8 @@ from .main_mdi import (
 from .message import (
     Dialog, 
     StatusBar,
+)
+from .user_input import (
     UserInput,
 )
 from .dbdatabase import (
@@ -45,7 +41,4 @@ from .region_list import (
 )
 from .file_display import (
     ImageLabel,
-)
-from .dicom_header import (
-    SeriesViewerMetaData,
 )

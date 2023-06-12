@@ -1,12 +1,12 @@
 import timeit
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import (QToolBar,
+from PySide2.QtCore import Signal, Qt
+from PySide2.QtWidgets import (QToolBar,
     QAction, QComboBox, QPushButton, QLabel, 
     QWidget, QDoubleSpinBox, QHBoxLayout, QVBoxLayout)
-from PyQt5.QtGui import QIcon, QPixmap
+from PySide2.QtGui import QIcon, QPixmap
 
-from wezel import widgets, icons
+from wezel import icons
 
 listColors =  ['gray', 'cividis',  'magma', 'plasma', 'viridis', 
     'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
@@ -40,7 +40,185 @@ QComboBox:down-arrow
 class ImageWindow(QWidget):
     """Widget to set and manage color and window settings of a Series"""
 
-    valueChanged = pyqtSignal(list)  # emitted when the color settings are changed by the widget
+    valueChanged = Signal(list)  # emitted when the color settings are changed by the widget
+
+    def __init__(self):
+        super().__init__()
+
+        # Widgets
+        self.mode = LockUnlockWidget(toolTip = 'Lock image settings')
+        self.upper = ImageUpper()
+        self.lower = ImageLower()
+
+        # Connections
+        self.upper.valueChanged.connect(self._valueChanged)
+        self.lower.valueChanged.connect(self._valueChanged)
+
+        # Layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0,0,0,0)
+        layout.setSpacing(0)
+        layout.addWidget(self.upper)
+        layout.addWidget(self.lower)
+        #self.setStyleSheet("background-color: white")
+        self.setLayout(layout)
+
+    def _valueChanged(self):
+        self.valueChanged.emit(self.getValue())
+
+    def setData(self, array, center, width, set=None):
+        min = np.amin(array)
+        max = np.amax(array)
+        if set is None:
+            set = not self.mode.isLocked
+        self.upper.setData(min, max, center+width/2, set)
+        self.lower.setData(min, max, center-width/2, set)
+
+    def getValue(self):
+        upper = self.upper.getValue()
+        lower = self.lower.getValue()
+        brightness = (upper+lower)/2
+        contrast = upper-lower
+        return [brightness, contrast]
+
+    def setValue(self, WindowCenter=None, WindowWidth=None):
+        self.upper.setValue(WindowCenter+WindowWidth/2)
+        self.lower.setValue(WindowCenter-WindowWidth/2)
+
+    def isLocked(self):
+        return self.mode.isLocked
+    
+    def spinBox(self, i):
+        if i == 0:
+            return self.lower.spinBox
+        if i == 1:
+            return self.upper.spinBox
+        
+
+
+class ImageUpper(QWidget):
+
+    valueChanged = Signal(float)
+
+    def __init__(self):
+        super().__init__()
+
+        self.label = QLabel()
+        self.label.setPixmap(QPixmap(icons.arrow_stop_090))
+        #self.label.setFixedSize(24, 24)
+        self.spinBox = QDoubleSpinBox()
+        self.spinBox.valueChanged.connect(self.spinBoxValueChanged)
+        self.spinBox.setToolTip("Adjust upper value of color window")
+        self.spinBox.setDecimals(6)
+        self.spinBox.setMinimum(-1000000000.00)
+        self.spinBox.setMaximum(+1000000000.00)
+        self.spinBox.setWrapping(False)
+        self.spinBox.setFixedWidth(115)
+        
+        # Layout
+        self.layout = QHBoxLayout()
+        self.layout.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setSpacing(2)
+        self.layout.addWidget(self.spinBox)
+        self.layout.addWidget(self.label)
+        #self.setMaximumWidth(120)
+        self.setLayout(self.layout)
+
+    def setData(self, min, max, value, set=True):
+        self.spinBox.blockSignals(True)
+        if value is None: 
+            self.spinBox.setValue(1)  
+            self.spinBox.setSingleStep(0.1)
+        else:
+            if set:  # adjust spinbox value to image contrast
+                self.spinBox.setValue(value)
+        self.setSpinBoxStepSize(min, max)
+        self.spinBox.blockSignals(False)
+
+    def getValue(self):
+        return self.spinBox.value()
+
+    def setValue(self, value):
+        self.spinBox.blockSignals(True)
+        self.spinBox.setValue(value)
+        self.spinBox.blockSignals(False)
+
+    def setSpinBoxStepSize(self, min, max):
+        if min is None:
+            return
+        width = max-min
+        spinBoxStep = float(width / 5)
+        self.spinBox.setSingleStep(spinBoxStep)
+
+    def spinBoxValueChanged(self):
+        value = self.spinBox.value()   
+        self.valueChanged.emit(value)
+
+
+class ImageLower(QWidget):
+
+    valueChanged = Signal(float)
+
+    def __init__(self):
+        super().__init__() 
+        self.label = QLabel()
+        self.label.setPixmap(QPixmap(icons.arrow_stop_270))
+        #self.label.setFixedSize(24, 24)
+        self.spinBox = QDoubleSpinBox()
+        self.spinBox.valueChanged.connect(self.spinBoxValueChanged)
+        self.spinBox.setToolTip("Adjust lower value of color window")
+        self.spinBox.setDecimals(6)
+        self.spinBox.setMinimum(-1000000000.00)
+        self.spinBox.setMaximum(+1000000000.00)
+        self.spinBox.setWrapping(False)
+        self.spinBox.setFixedWidth(115)
+        
+        # Layout
+        self.layout = QHBoxLayout()
+        self.layout.setAlignment(Qt.AlignLeft  | Qt.AlignVCenter)
+        self.layout.setContentsMargins(0,0,0,0)
+        self.layout.setSpacing(2)
+        self.layout.addWidget(self.spinBox)
+        self.layout.addWidget(self.label)
+        #self.setMaximumWidth(120)
+        self.setLayout(self.layout)
+
+    def setData(self, min, max, value, set=True):
+        self.spinBox.blockSignals(True)
+        if value is None: 
+            self.spinBox.setValue(1)  
+            self.spinBox.setSingleStep(0.1)
+        else:
+            if set:  # adjust spinbox value to image contrast
+                self.spinBox.setValue(value)
+        self.setSpinBoxStepSize(min, max)
+        self.spinBox.blockSignals(False)
+
+    def getValue(self):
+        return self.spinBox.value()
+
+    def setValue(self, value):
+        self.spinBox.blockSignals(True)
+        self.spinBox.setValue(value)
+        self.spinBox.blockSignals(False)
+
+    def setSpinBoxStepSize(self, min, max):
+        if min is None:
+            return
+        width = max-min
+        spinBoxStep = float(width / 5)
+        self.spinBox.setSingleStep(spinBoxStep)
+
+    def spinBoxValueChanged(self):
+        value = self.spinBox.value()
+        self.valueChanged.emit(value)
+
+
+class ImageContrastWindow(QWidget):
+    """Widget to set and manage color and window settings of a Series"""
+
+    valueChanged = Signal(list)  # emitted when the color settings are changed by the widget
 
     def __init__(self, layout=True):
         super().__init__()
@@ -92,7 +270,7 @@ class ImageWindow(QWidget):
 
 class ImageContrast(QWidget):
 
-    valueChanged = pyqtSignal(float)
+    valueChanged = Signal(float)
 
     def __init__(self, layout=True):
         super().__init__()
@@ -151,7 +329,7 @@ class ImageContrast(QWidget):
 
 class ImageBrightness(QWidget):
 
-    valueChanged = pyqtSignal(float)
+    valueChanged = Signal(float)
 
     def __init__(self, layout=True):
         super().__init__() 
@@ -209,7 +387,7 @@ class ImageBrightness(QWidget):
 
 class LockUnlockWidget(QToolBar):
 
-    toggled = pyqtSignal()
+    toggled = Signal()
 
     def __init__(self, toolTip = 'Lock state'):
         super().__init__()
@@ -235,7 +413,7 @@ class LockUnlockWidget(QToolBar):
 
 class DeleteImageButton(QPushButton):
 
-    buttonClicked = pyqtSignal()
+    buttonClicked = Signal()
 
     def __init__(self, image=None):
         super().__init__()
@@ -279,7 +457,7 @@ class ExportImageButton(QPushButton):
 
 class RestoreImageButton(QPushButton):
 
-    buttonClicked = pyqtSignal()
+    buttonClicked = Signal()
 
     def __init__(self, image=None):
         super().__init__()
@@ -301,7 +479,7 @@ class RestoreImageButton(QPushButton):
 
 class SaveImageButton(QPushButton):
 
-    buttonClicked = pyqtSignal()
+    buttonClicked = Signal()
 
     def __init__(self, image=None):
         super().__init__()

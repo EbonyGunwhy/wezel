@@ -1,0 +1,6 @@
+dipy
+SimpleITK
+itk-elastix
+scikit-learn
+pyvista
+pyvistaqt

@@ -1,26 +1,16 @@
-
-
-import sys
-import logging
-
-#from PyQt5.QtCore import *
-from PyQt5.QtCore import  pyqtSignal, Qt
-from PyQt5.QtWidgets import (
+from PySide2.QtCore import Signal, Qt
+from PySide2.QtWidgets import (
     QWidget, 
-    QApplication, 
     QMainWindow, 
     QAction, 
     QMenu, 
     QMenuBar, 
     QDockWidget, 
     QMessageBox) 
-from PyQt5.QtGui import QIcon
+from PySide2.QtGui import QIcon
 
 import dbdicom as db
 import wezel
-
-QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
 
 # Examples of style sheets
@@ -139,35 +129,9 @@ SMALLSTYLESHEET = """
     """
 
 
-class Wezel:
-
-    def __init__(self):
-        self.log = logger()
-        self.QApp = QApplication(sys.argv)
-        self.QApp.setWindowIcon(QIcon(wezel.icons.favicon))
-        self.main = Main(self)
-
-    def show(self):    
-        self.log.info('Launching Wezel!')
-        try:
-            self.main.show()
-            self.QApp.exec()
-            #sys.exit(self.QApp.exec())
-        except Exception as e:
-            # Use QMessage
-            print('Wezel Error: ' + str(e))
-            self.log.exception('Wezel Error: ' + str(e))
-
-    def open(self, path):
-        self.main.open(path)
-
-    def set_menu(self, menu):
-        self.main.set_menu(menu)
-
-
 class Main(QMainWindow):
 
-    def __init__(self, wzl): 
+    def __init__(self, wzl, project=None): 
         """
         Initialize the Wezel class and its attributes.
         
@@ -189,7 +153,10 @@ class Main(QMainWindow):
         super().__init__()
         self.wezel = wzl
         #self.setStyleSheet(SMALLSTYLESHEET)
-        self.setWindowTitle("Wezel")
+        title = "  Wezel"
+        if project is not None:
+            title += ' -- project ' + project
+        self.setWindowTitle(title)
         
         # self.offset = None
         # self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowMinMaxButtonsHint)
@@ -213,7 +180,6 @@ class Main(QMainWindow):
         self.central.subWindowActivated.connect(lambda subWindow: self.activateSubWindow(subWindow))
         self.setCentralWidget(self.central)
 
-        self.set_menu(wezel.menus.dicom)
 
     # def mousePressEvent(self, event):
     #     self.offset = event.pos()
@@ -234,18 +200,12 @@ class Main(QMainWindow):
     #     self.setContentsMargins(8, 8, 8, 8)
     #     super().resizeEvent(event)
 
-
-
     def closeEvent(self, event): #main
         accept = self.close()
         if accept:
             event.accept()
         else:
             event.ignore()
-
-    def set_menu(self, menu):
-        self.menubar = MenuBar(self, menu)
-        self.setMenuBar(self.menubar)
 
     def open(self, path):
         folder = db.database(path=path, 
@@ -272,11 +232,16 @@ class Main(QMainWindow):
         Refreshes the Wezel display.
         """
         self.status.message('Refreshing display..')
-        self.treeView.setDatabase()
+        if self.treeView is not None:
+            self.treeView.setDatabase()
         self.menuBar().enable()
         self.status.hide()
         
     def display(self, object):
+        if isinstance(object, list):
+            for o in object:
+                self.display(o)
+            return
         if object is None:
             self.dialog.information('There are no data to show here')
             return
@@ -291,9 +256,8 @@ class Main(QMainWindow):
         elif object.type() == 'Study': # No Study Viewer yet
             pass
         elif object.type() == 'Series':
-            seriesDisplay = wezel.widgets.SeriesDisplay()
-            seriesDisplay.setSeries(object)
-            self.addWidget(seriesDisplay, title=object.label())
+            viewer = wezel.displays.SeriesDisplay(object)
+            self.addWidget(viewer, title=object.label())
         elif object.type() == 'Instance':
             pass
 
@@ -316,7 +280,31 @@ class Main(QMainWindow):
         if databases == []:
             return 
         else:
-            return databases[0]        
+            return databases[0]   
+
+    def top_level_selected(self):
+        patients = self.selected('Patients')
+        studies = self.selected('Studies')
+        series = self.selected('Series')
+        sel = patients + studies + series
+        if sel == []:     
+            return
+        tl_patients = []
+        tl_studies = []
+        tl_series = []
+        for patient in self.database().patients():
+            if patient in patients:
+                tl_patients.append(patient)
+            else:
+                for study in patient.studies():
+                    if study in studies:
+                        tl_studies.append(study)
+                    else:
+                        for sery in study.series():
+                            if sery in series:
+                                tl_series.append(sery)
+        return tl_patients, tl_studies, tl_series
+             
 
     def selected(self, generation='Series'):
         """Returns a list of selected objects of the requested generation"""
@@ -339,19 +327,19 @@ class Main(QMainWindow):
         widget = activeWindow.widget()
         if generation=='Instances':
             if hasattr(widget, 'instance'):
-                return [widget.instance()]
+                return [widget.instance]
         elif generation=='Series':
             if hasattr(widget, 'series'):
-                return [widget.series()]
+                return [widget.series] # bug fix widget.series() to widget.series (idem for others)
         elif generation=='Studies':
             if hasattr(widget, 'study'):
-                return [widget.study()]
+                return [widget.study]
         elif generation=='Patients':
             if hasattr(widget, 'patient'):
-                return [widget.patient()]
+                return [widget.patient]
         elif generation=='Databases':
             if hasattr(widget, 'database'):
-                return [widget.database()]
+                return [widget.database]
         return []
         
  
@@ -389,12 +377,17 @@ class Main(QMainWindow):
         # The widget continues to exist - memory issues?
         # Delete widget when subwindow closes
         widget = subWindow.widget().__class__.__name__
+        # Hack
+        # The widget is sometimes destroyed by removeSubWindow but not always - not sure why
+        if widget == 'QWidget':
+            return
         if 0 == self.central.countSubWindow(widget):
             toolBar = subWindow.widget().toolBar
             if toolBar is not None:
                 toolBar.setEnabled(False)
             #self.toolBarDockWidget.hide()
         #self.refresh()
+
 
     def activateSubWindow(self, subWindow):
         if self.central.activeWindow == subWindow:
@@ -411,6 +404,7 @@ class Main(QMainWindow):
             if toolBar is not None:
                 subWindow.widget().setToolBarState()
                 self.toolBarDockWidget.setWidget(toolBar)
+
 
     def addWidget(self, widget, title):
         # rename to addSubWindow()
@@ -441,7 +435,7 @@ class Main(QMainWindow):
 class MainWidget(QWidget):
     """Base class for widgets that are set as subWindow widgets"""
 
-    databaseUpdated = pyqtSignal() 
+    databaseUpdated = Signal() 
 
     def __init__(self):
         super().__init__()
@@ -479,127 +473,157 @@ class MainWidget(QWidget):
 
 
 class MenuBar(QMenuBar):
-    """
-    Programming interfaces for the Wezel menus. 
-    """
+    def __init__(self, *args):
+        self._menus = list(args)
 
-    def __init__(self, main, menu):
-        super().__init__()
+    def menus(self):
+        return self._menus
 
-        self._menus = []
-        self.main = main
-        menu(self)
+    def add(self, menu, position=None):
+        if position is None:
+            position = len(self._menus)
+        self._menus.insert(position, menu)
+
+    def add_menu(self, title='Menu'):
+        menu = Menu(title)
+        self.add(menu)
+        return menu
+
+    def setupUI(self, app):
+        try:
+            super().__init__()
+        except:
+            return
+        for menu in self._menus:
+            menu.setupUI(app)
+            self.addMenu(menu)
         self.enable()
 
-    def addMenu(self, menu):
-        super().addMenu(menu)
-        self._menus.append(menu)
-        
-    def menu(self, label = "Menu"):
-        """
-        Creates a top level menu in the menuBar.
-        """
-        return Menu(self, label)
-
     def enable(self):
-        """
-        Refreshes the enabled status of each menu item.
-        """
         for menu in self._menus:
             menu.enable()
 
 
+
 class Menu(QMenu):
 
-    def __init__(self, parent, title='Menu'):
-        super().__init__()
+    def __init__(self, title='Menu'):
+        self.app = None
+        self._title = title
+        self._items = []
 
-        self._actions = []
-        self._menus = []
-        self.setTitle(title)
-        self.main = parent.main
-        if parent is not None:
-            parent.addMenu(self)
+    def title(self):
+        return self._title
+    
+    def set_title(self, title):
+        self._title = title
 
-    def addMenu(self, menu):
-        super().addMenu(menu)
-        self._menus.append(menu)
+    def setupUI(self, app):
+        try:
+            super().__init__()
+        except:
+            # Do nothing if the object is already set up
+            return
+        self.setTitle(self._title)
+        for item in self._items:
+            if isinstance(item, Action):
+                item.setupUI(app)
+                self.addAction(item)
+            elif isinstance(item, Menu):
+                item.setupUI(app)
+                self.addMenu(item)
+            elif isinstance(item, Separator):
+                self.addSeparator()
 
-    def menu(self, title='Submenu'):
-        return Menu(self, title)
+    def add(self, item, position=None, text=None):
+        if text is not None:
+            if isinstance(item, Action):
+                item.set_text(text)
+            elif isinstance(item, Menu):
+                item.set_title(text)  
+            elif isinstance(item, Separator):
+                pass
+        if position is None:
+            position = len(self._items)
+        self._items.insert(position, item)
 
-    def action(self, action, **kwargs):
-        #return action(self, **kwargs)
-        action = action(self, **kwargs)
-        self.addAction(action)
-        self._actions.append(action)
-        return action
-        
-    def separator(self):
-        self.addSeparator() 
+    def add_action(self, *args, **kwargs):
+        action = Action(*args, **kwargs)
+        self.add(action)
+
+    def add_menu(self, *args, **kwargs):
+        menu = Menu(*args, **kwargs)
+        self.add(menu)
+        return menu
+
+    def add_separator(self, **kwargs):
+        sep = Separator()
+        self.add(sep, **kwargs)
 
     def enable(self):
-        """
-        Refreshes the enabled status of each menu item.
-        """
-        for submenu in self._menus:
-            submenu.enable()
-        for action in self._actions:
-            enable = action.enable(action.main)
-            action.setEnabled(enable)
+        for item in self._items:
+            if isinstance(item, Action):
+                enable = item.enable()
+                item.setEnabled(enable)
+            elif isinstance(item, Menu):
+                item.enable()
 
 
 class Action(QAction):
-    """Base class for all wezel actions"""
+    def __init__(self, 
+            text = 'Action',
+            shortcut = None,
+            tooltip = None, 
+            icon = None, 
+            on_clicked = None,
+            is_clickable = None):
 
-    def __init__(self, parent,
-        text = None,
-        shortcut = None,
-        tooltip = None, 
-        icon = None,  
-        **kwargs):
-        """parent: App, Menu or MenuBar"""
-        super().__init__()
+        self._app = None
+        self._text = text
+        self._shortcut = shortcut
+        self._tooltip = tooltip
+        self._icon = icon
+        self._on_clicked = on_clicked
+        self._is_clickable = is_clickable
 
-        self.main = parent.main
-        if text is None:
-            text = self.__class__.__name__
-        self.setText(text)
-        self.triggered.connect(lambda: self.run(self.main))
-    
-        if icon is not None: 
-            self.setIcon(QIcon(icon))
-        if shortcut is not None: 
-            self.setShortcut(shortcut)
-        if tooltip is not None: 
-            self.setToolTip(tooltip)
+    def set_text(self, text):
+        self._text = text
+        
+    def setupUI(self, app):
+        try:
+            super().__init__()
+        except:
+            return
+        self._app = app
+        self.triggered.connect(self._run)
+        self.setText(self._text)
+        if self._icon is not None: 
+            self.setIcon(QIcon(self._icon))
+        if self._shortcut is not None: 
+            self.setShortcut(self._shortcut)
+        if self._tooltip is not None: 
+            self.setToolTip(self._tooltip)
+        
+    def _run(self):
+        if self._on_clicked is not None:
+            try:
+                self._on_clicked(self._app)
+            # except ValueError as e:
+            #     # If the user has selected a wrong value, inform them
+            #     self._app.dialog.information(str(e))
+            except:
+                # Any other error - report as bug
+                self._app.dialog.error()
+                self._app.refresh()
+        self._app.status.hide()
+        self._app.status.message('Ready for your next move.. Give it to me!')
 
-        # Dictionary with optional settings
-        for option in kwargs:
-            self.__dict__[option] = kwargs[option]
+    def enable(self):
+        if self._is_clickable is not None:
+            return self._is_clickable(self._app)
+        else:
+            return True
+        
 
-    def enable(self, app):
-        return True
-
-    def run(self, app):
-        pass
-
-
-
-
-
-
-def logger():
-    
-    LOG_FILE_NAME = "wezel_log.log"
-    # creates some sort of conflict with mdreg - commenting out for now
-#    if os.path.exists(LOG_FILE_NAME):
-#        os.remove(LOG_FILE_NAME)
-    LOG_FORMAT = "%(levelname)s %(asctime)s - %(message)s"
-    logging.basicConfig(
-        filename = LOG_FILE_NAME, 
-        level = logging.INFO, 
-        format = LOG_FORMAT)
-    return logging.getLogger(__name__)
-
-
+class Separator:
+    pass

@@ -1,7 +1,7 @@
-# https://stackoverflow.com/questions/47342158/porting-range-slider-widget-to-pyqt5
+# https://stackoverflow.com/questions/47342158/porting-range-slider-widget-to-PySide2
 
 import sys, os
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide2 import QtCore, QtGui, QtWidgets
 
 __all__ = ['QRangeSlider']
 
@@ -149,14 +149,14 @@ class Handle(Element):
 
 
 class QRangeSlider(QtWidgets.QWidget, Ui_Form):
-    endValueChanged = QtCore.pyqtSignal(int)
-    maxValueChanged = QtCore.pyqtSignal(int)
-    minValueChanged = QtCore.pyqtSignal(int)
-    startValueChanged = QtCore.pyqtSignal(int)
-    minValueChanged = QtCore.pyqtSignal(int)
-    maxValueChanged = QtCore.pyqtSignal(int)
-    startValueChanged = QtCore.pyqtSignal(int)
-    endValueChanged = QtCore.pyqtSignal(int)
+    endValueChanged = QtCore.Signal(int)
+    maxValueChanged = QtCore.Signal(int)
+    minValueChanged = QtCore.Signal(int)
+    startValueChanged = QtCore.Signal(int)
+    minValueChanged = QtCore.Signal(int)
+    maxValueChanged = QtCore.Signal(int)
+    startValueChanged = QtCore.Signal(int)
+    endValueChanged = QtCore.Signal(int)
 
     _SPLIT_START = 1
     _SPLIT_END = 2

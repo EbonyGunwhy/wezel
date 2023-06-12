@@ -3,7 +3,7 @@ import os
 import shutil
 import timeit
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QWidget
+from PySide2.QtWidgets import QApplication, QWidget
 import dbdicom as db
 import wezel
 from wezel import widgets, canvas

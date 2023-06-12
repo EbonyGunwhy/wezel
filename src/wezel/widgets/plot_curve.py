@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PySide2.QtWidgets import QWidget, QVBoxLayout
 
 class PlotCurve(QWidget):
 
@@ -63,7 +63,7 @@ class PlotCurve(QWidget):
         self.subPlot.set_ylabel(
             self.yLabel, loc='center', 
             fontsize=10)
-        self.subPlot.grid()
+        self.subPlot.grid(axis='y')
         self.subPlot.plot(x, y)
         if index is not None:
             self.subPlot.plot(x[index], y[index], 'bo')

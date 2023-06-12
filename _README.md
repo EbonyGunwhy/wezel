@@ -155,18 +155,18 @@ The `HelloWorld` action is defied as follows:
 ```python
 import wezel
 
-class HelloWorld(wezel.Action):
+class HelloWorld(wezel.gui.Action):
 
     def run(self, app):
         app.dialog.information("Hello World!", title='My first action!')
 ```
 
-As the example shows, all actions in `wezel` must be defined by subclassing the `wezel.Action` class. There are no other compulsory arguments, so the following creates a functional action which does absolutely nothing when clicked:
+As the example shows, all actions in `wezel` must be defined by subclassing the `wezel.gui.Action` class. There are no other compulsory arguments, so the following creates a functional action which does absolutely nothing when clicked:
 
 ```python
 import wezel
 
-class DoNothing(wezel.Action):
+class DoNothing(wezel.gui.Action):
     pass
 ```
 
@@ -253,7 +253,7 @@ Apps can be changed at runtime - for instance the following action will toggle b
 ```python
 import wezel
 
-class ToggleApp(wezel.Action):
+class ToggleApp(wezel.gui.Action):
 
     def run(self, app):
         

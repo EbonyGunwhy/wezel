@@ -1,26 +1,145 @@
 import numpy as np
-#from PyQt5.QtGui import QImage
-
 from matplotlib import cm
-
 from skimage import feature
 import cv2 as cv2
 
 
-def region_grow_add(img, selected, seed, min, max):
+def dilate_cluster(bin, p, kernel, mode='draw'):
+    # Find the selected cluster
+    # mask = bin.astype(np.uint8)
+    # cluster = np.zeros(mask.shape, dtype=np.bool8)
+    # cluster = region_grow_add(mask, cluster, [p], 0.5, 1.5)
+    cluster = pick_cluster(bin, p)
+    if mode == 'draw':
+        # Take it out of the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster))
+        # Dilate it
+        cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+        # Put it back into the ROI
+        bin = np.logical_or(bin, cluster.astype(np.bool8))
+    elif mode == 'cut':
+        # Dilate it
+        cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+        # Remove it from the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster.astype(np.bool8)))
+    elif mode == 'rescue':
+        # Dilate it
+        cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+        # Set as ROI
+        bin = cluster
+    return bin
+
+
+def erode_cluster(bin, p, kernel, mode='draw'):
+    # Find the selected cluster
+    # mask = bin.astype(np.uint8)
+    # cluster = np.zeros(mask.shape, dtype=np.bool8)
+    # cluster = region_grow_add(mask, cluster, [p], 0.5, 1.5)
+    cluster = pick_cluster(bin, p)
+    if mode == 'draw':
+        # Take it out of the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster))
+        # Erode it
+        cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+        # Put it back into the ROI
+        bin = np.logical_or(bin, cluster.astype(np.bool8))
+    elif mode == 'cut':
+        # Erode it
+        cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+        # Remove it from the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster.astype(np.bool8)))
+    elif mode == 'rescue':
+        # Erode it
+        cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+        # Set as ROI
+        bin = cluster
+    return bin
+
+
+def open_cluster(bin, p, kernel, mode='draw', split=False):
+    # Find the selected cluster
+    cluster = pick_cluster(bin, p)
+    if mode == 'draw':
+        # Take it out of the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster))
+        # Erode it then dilate it
+        if kernel is not None:
+            cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+            cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+        # Pick it again in case it was split up in multiple
+        if not split:
+            cluster = pick_cluster(cluster, p)
+        # Put it back into the ROI
+        bin = np.logical_or(bin, cluster.astype(np.bool8))
+    elif mode == 'cut':
+        # Erode it then dilate it
+        if kernel is not None:
+            cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+            cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+        # Pick it again in case it was split up in multiple
+        if not split:
+            cluster = pick_cluster(cluster, p)
+        # Remove it from the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster.astype(np.bool8)))
+    elif mode == 'rescue':
+        # Erode it then dilate it
+        if kernel is not None:
+            cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+            cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+        # Pick it again in case it was split up in multiple
+        if not split:
+            cluster = pick_cluster(cluster, p)
+        # Set as ROI
+        bin = cluster
+    return bin
+
+
+def close_cluster(bin, p, kernel, mode='draw'):
+    # Find the selected cluster
+    cluster = pick_cluster(bin, p)
+    if mode == 'draw':
+        # Take it out of the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster))
+        # Dilate and then erode
+        if kernel is not None:
+            cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+            cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+        # Put it back into the ROI
+        bin = np.logical_or(bin, cluster.astype(np.bool8))
+    elif mode == 'cut':
+        # Dilate and then erode
+        if kernel is not None:
+            cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+            cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+        # Remove it from the ROI
+        bin = np.logical_and(bin, np.logical_not(cluster.astype(np.bool8)))
+    elif mode == 'rescue':
+        # Dilate and then erode
+        if kernel is not None:
+            cluster = cv2.dilate(cluster.astype(np.uint8), kernel)
+            cluster = cv2.erode(cluster.astype(np.uint8), kernel)
+        # Set as ROI
+        bin = cluster
+    return bin
+
+
+def pick_cluster(bin, p):
+    mask = bin.astype(np.uint8) 
+    return region_grow_select(mask, [p], 0.5, 1.5) 
+
+
+def region_grow_select(img, seed, min, max):
+    selected = np.zeros(img.shape, dtype=np.bool8)
+    checked = np.zeros(img.shape, dtype=np.bool8)
     width, height = img.shape
-    checked = np.copy(selected) 
-    # neighbours = [ #should not include corners?
-    #     [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], 
-    #     [0, 1], [-1, 1], [-1, 0]
-    # ]
     neighbours = [ 
         [0, -1], [1, 0], 
         [0, 1], [-1, 0],
     ]
     while seed != []:
         p = seed.pop()
-        selected[p[0], p[1]] = True
+        if min <= img[p[0], p[1]] <= max:
+            selected[p[0], p[1]] = True
         for next in neighbours:
             x = p[0] + next[0]
             y = p[1] + next[1]
@@ -32,20 +151,18 @@ def region_grow_add(img, selected, seed, min, max):
                     seed.append([x,y])
     return selected
 
-def region_grow_remove(img, selected, to_select, min, max):
+
+def region_grow_add(img, selected, seed, min, max):
     width, height = img.shape
-    checked = np.copy(np.logical_not(selected))
-    # neighbours = [
-    #     [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], 
-    #     [0, 1], [-1, 1], [-1, 0]
-    # ]
+    checked = np.copy(selected) 
     neighbours = [ 
         [0, -1], [1, 0], 
         [0, 1], [-1, 0],
     ]
-    while to_select != []:
-        p = to_select.pop()
-        selected[p[0], p[1]] = False
+    while seed != []:
+        p = seed.pop()
+        if min <= img[p[0], p[1]] <= max:
+            selected[p[0], p[1]] = True
         for next in neighbours:
             x = p[0] + next[0]
             y = p[1] + next[1]
@@ -54,8 +171,32 @@ def region_grow_remove(img, selected, to_select, min, max):
             if not checked[x,y]:
                 checked[x,y] = True
                 if min <= img[x,y] <= max:
-                    to_select.append([x,y])
+                    seed.append([x,y])
     return selected
+    
+
+def region_grow_remove(img, selected, seed, min, max):
+    width, height = img.shape
+    checked = np.copy(np.logical_not(selected))
+    neighbours = [ 
+        [0, -1], [1, 0], 
+        [0, 1], [-1, 0],
+    ]
+    while seed != []:
+        p = seed.pop()
+        if min <= img[p[0], p[1]] <= max:
+            selected[p[0], p[1]] = False
+        for next in neighbours:
+            x = p[0] + next[0]
+            y = p[1] + next[1]
+            if x < 0 or y < 0 or x >= width or y >= height:
+                continue
+            if not checked[x,y]:
+                checked[x,y] = True
+                if min <= img[x,y] <= max:
+                    seed.append([x,y])
+    return selected
+
 
 
 COLORMAPS = [ # This needs to move to dbdicom - list of supported colormaps

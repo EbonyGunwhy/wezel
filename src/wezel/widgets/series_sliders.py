@@ -1,10 +1,10 @@
 import pandas as pd
 
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import (
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtWidgets import (
     QWidget, QHBoxLayout, QPushButton,
     )
-from PyQt5.QtGui import QIcon
+from PySide2.QtGui import QIcon
 
 from wezel import widgets, icons
 
@@ -12,7 +12,7 @@ from wezel import widgets, icons
 class SeriesSliders(QWidget):
     """Widget with sliders to navigate through a DICOM series."""
 
-    valueChanged = pyqtSignal(object)
+    valueChanged = Signal(object)
 
     def __init__(self, series=None, image=None, dimensions=[]):  
         super().__init__()
@@ -148,6 +148,7 @@ class SeriesSliders(QWidget):
             self.sliders = self.sliders[:1]
             self.sliders[0].show()
 
+
     def _sliderStateChanged(self):
 
         if self.image is None:
@@ -156,76 +157,13 @@ class SeriesSliders(QWidget):
             self._setActiveSliderValues()
             self._setMainSliderValue()
 
+
     def _setSliderValues(self):
         
         if self.image is None: 
             return
         self._setActiveSliderValues()
         self._setMainSliderValue()
-
-    def move(self, slider='first', direction=1, key='up'):
-        """
-        Move the sliders by one step forwards or backwards.
-
-        Arguments
-        ---------
-        Specify either slider + direction, or key.
-
-        slider : either first or second slider
-        direction : either +1 (forwards) or -1 (backwards)
-        key: arrow (left, right, up or down)
-        """
-        # Translate keyboard arrow hits to slider movement
-        self._blockSignals = True
-        if key is not None:
-            if key == 'left':
-                slider = 'first'
-                direction = -1
-            elif key == 'right':
-                slider = 'first'
-                direction = 1
-            elif key == 'up':
-                slider = 'second'
-                direction = 1
-            elif key == 'down':
-                slider = 'second'
-                direction = -1
-        active = self._activeSliders
-        if self.sliders[0].isHidden():
-            if slider == 'first':
-                sldr = active[0]
-                index = sldr.index() + direction
-                if sldr.setIndex(index):
-                    self._sliderValueChanged()
-            else:
-                if len(active) > 1:
-                    sldr = active[1]
-                else:
-                    sldr = active[0]
-                index = sldr.index() + direction
-                if sldr.setIndex(index):
-                    self._sliderValueChanged()
-
-        else: # main slider is visible
-
-            if slider == 'first':
-                sldr = self.sliders[0]
-                index = sldr.index() + direction
-                if sldr.setIndex(index):
-                    self._mainSliderValueChanged()
-            else: 
-                if len(active) > 0:
-                    sldr = active[0]
-                    index = sldr.index() + direction
-                    if sldr.setIndex(index):
-                        self._sliderValueChanged()
-                else:
-                    sldr = self.sliders[0]
-                    index = sldr.index() + direction
-                    if sldr.setIndex(index):
-                        self._mainSliderValueChanged()
-        self._blockSignals = False
-
 
     def _setActiveSliderValues(self):
 
@@ -246,6 +184,7 @@ class SeriesSliders(QWidget):
             self.sliders[0].hide()
         else:
             index = imageUIDs.index(self.image.uid)
+            self.sliders[0].setValues(range(len(imageUIDs))) # bug fix 02/03/2023
             self.sliders[0].setValue(index)
             self.sliders[0].show()
 
@@ -308,5 +247,75 @@ class SeriesSliders(QWidget):
             if slider.checkBox.isChecked():
                 activeSliders.append(slider)
         return activeSliders
+    
+
+    def move(self, slider='first', direction=1, key='up'):
+        """
+        Move the sliders by one step forwards or backwards.
+
+        Arguments
+        ---------
+        Specify either slider + direction, or key.
+
+        slider : either first or second slider
+        direction : either +1 (forwards) or -1 (backwards)
+        key: arrow (left, right, up or down)
+        """
+        # Translate keyboard arrow hits to slider movement
+        self._blockSignals = True
+        if key is not None:
+            if key == 'left':
+                slider = 'first'
+                direction = -1
+            elif key == 'right':
+                slider = 'first'
+                direction = 1
+            elif key == 'up':
+                slider = 'second'
+                direction = 1
+            elif key == 'down':
+                slider = 'second'
+                direction = -1
+        active = self._activeSliders
+        if self.sliders[0].isHidden():
+            if slider == 'first':
+                sldr = active[0]
+                index = sldr.index() + direction
+                if sldr.setIndex(index):
+                    self._blockSignals = False
+                    self._sliderValueChanged()
+            else:
+                if len(active) > 1:
+                    sldr = active[1]
+                else:
+                    sldr = active[0]
+                index = sldr.index() + direction
+                if sldr.setIndex(index):
+                    self._blockSignals = False
+                    self._sliderValueChanged()
+
+        else: # main slider is visible
+
+            if slider == 'first':
+                sldr = self.sliders[0]
+                index = sldr.index() + direction
+                if sldr.setIndex(index):
+                    self._blockSignals = False
+                    self._mainSliderValueChanged()
+            else: 
+                if len(active) > 0:
+                    sldr = active[0]
+                    index = sldr.index() + direction
+                    if sldr.setIndex(index):
+                        self._blockSignals = False
+                        self._sliderValueChanged()
+                else:
+                    sldr = self.sliders[0]
+                    index = sldr.index() + direction
+                    if sldr.setIndex(index):
+                        self._blockSignals = False
+                        self._mainSliderValueChanged()
+        self._blockSignals = False
+
     
 

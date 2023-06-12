@@ -1,122 +1,16 @@
 import numpy as np
 
-from PyQt5.QtWidgets import (
+from PySide2.QtWidgets import (
     QWidget, 
     QSplitter,
     QVBoxLayout,
 )
 
-from wezel import widgets, canvas, MainWidget
+import wezel
+from wezel import widgets, canvas
 
 
-class SeriesDisplay(MainWidget):
-
-    def __init__(self):
-        super().__init__()
-        self.toolBarClass = canvas.ToolBar
-
-        # Widgets
-        self.sliders = widgets.SeriesSliders()
-        self.canvas = canvas.SeriesCanvas(self)
-
-        # Connections
-        self.sliders.valueChanged.connect(self.slidersChanged)
-        self.canvas.arrowKeyPress.connect(lambda arrow: self.arrowKeyPress(arrow))
-        self.canvas.mousePositionMoved.connect(
-            lambda x, y: self.series().status.pixelValue(x,y,self.canvas.array())
-        )
-
-        # Display
-        self._view = SeriesDisplayView(self)
-
-    def setToolBar(self, toolBar):
-        super().setToolBar(toolBar)
-        self.canvas.fitItem()
-
-    def setToolBarState(self):
-        self.toolBar.setWidget(self.canvas)
-
-    def setActive(self, active):
-        #super().setActive(active)
-        if not active:
-            self.canvas.saveMask()
-
-    def closeEvent(self, event):
-        newSeries = self.canvas._model.saveRegions()
-        if newSeries:
-            self.databaseUpdated.emit()
-
-    def series(self):
-        return self.canvas._model._series
-        
-    def setSeries(self, series):
-        if series.instances() == []:
-            self.setError('Series ' + series.label() + ' is empty. \n\n Nothing to show here..')
-            return
-        self.sliders.setData(series)
-        self.canvas._model._series = series
-        image = self.sliders.image
-        if image is None:
-            return
-        image.read()
-        array = image.array()
-        if array is None:
-            self.setError('Series ' + series.label() + ' does not contain images. \n\n Nothing to show here..')
-            image.clear()
-            return
-        self.canvas.setArray(
-            array,
-            image.SOPInstanceUID, 
-            image.WindowCenter, 
-            image.WindowWidth, 
-            image.colormap,
-        )
-        image.clear()
-
-    def slidersChanged(self):
-        image = self.sliders.image
-        if image is None:
-            return
-        image.read()
-        self.canvas.changeArray(
-            image.array(), 
-            image.SOPInstanceUID, 
-            image.WindowCenter, 
-            image.WindowWidth, 
-            image.colormap,
-        )
-        image.clear()
-        
-    def arrowKeyPress(self, key):
-        image_before = self.sliders.image
-        self.sliders.move(key=key)
-        image_after = self.sliders.image
-        if image_after != image_before:
-            if image_after is None:
-                return
-            image_after.read()
-            self.canvas.changeArray(
-                image_after.array(), 
-                image_after.SOPInstanceUID, 
-                image_after.WindowCenter, 
-                image_after.WindowWidth, 
-                image_after.colormap,
-            )
-            image_after.clear()
-
-
-class SeriesDisplayView():
-    def __init__(self, controller):
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addWidget(controller.canvas)
-        layout.addWidget(controller.sliders)
-        controller.setLayout(layout)
-
-
-
-class SeriesDisplay4D(MainWidget):
+class SeriesDisplay4D(wezel.gui.MainWidget):
     """
     GUI for displaying a 4D numpy array
     """
@@ -198,12 +92,13 @@ class SeriesDisplay4D(MainWidget):
     def series(self):
         return self.canvas._model._series
 
-    def setSeries(self, series, sortby=['SliceLocation', 'AcquisitionTime']):
+    def setSeries(self, series, sortby=['SliceLocation', 'AcquisitionTime'], xoffset=True):
         if series.instances() == []:
             self.setError('Series ' + series.label() + ' is empty. \n\n Nothing to show here..')
             return
         self.canvas._model._series = series
         array, header = series.array(sortby, pixels_first=True)
+
         if array is None:
             self.setError('Series ' + series.label() + ' does not have images. \n\n Nothing to show here..')
             return
@@ -215,9 +110,8 @@ class SeriesDisplay4D(MainWidget):
         # create index arrays
         # Unnecessary read of all files
         d = self.array.shape
-        self.zcoords = np.empty((d[2],d[3]))
-        self.tcoords = np.empty((d[2],d[3]))
-
+        self.zcoords = np.empty((d[2],d[3]), dtype=np.float32)
+        self.tcoords = np.empty((d[2],d[3]), dtype=np.float32)
         self.uid = np.empty((d[2],d[3]), dtype=object)
         self.center = np.empty((d[2],d[3]))
         self.width = np.empty((d[2],d[3]))
@@ -229,7 +123,7 @@ class SeriesDisplay4D(MainWidget):
         for z in range(d[2]):
             for t in range(d[3]):
                 cnt += 1
-                series.status.progress(cnt, total, 'Reading coordinates..')
+                series.status.progress(cnt, total, 'Reading image properties..')
                 values = header[z,t,0][variables]
                 self.zcoords[z,t] = values[0]
                 self.tcoords[z,t] = values[1]
@@ -238,7 +132,8 @@ class SeriesDisplay4D(MainWidget):
                 self.width[z,t] = values[4]
                 self.colormap[z,t] = values[5]
         series.status.hide()
-
+        if xoffset:
+            self.tcoords -= np.amin(self.tcoords)
         self.viewSlider.setMaximum(array.shape[2]-1)
         self.plotSlider.setMaximum(array.shape[3]-1)
         self.plot.setXlabel(self.tlabel)
@@ -353,4 +248,3 @@ class SeriesDisplay4DToolBar(canvas.ToolBar):
         xmax = center + width/2
         self.plot.setYlim([xmin, xmax])
         self.widget.setPlot()
-

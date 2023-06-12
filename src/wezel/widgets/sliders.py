@@ -1,5 +1,5 @@
-from PyQt5.QtCore import  Qt, pyqtSignal
-from PyQt5.QtWidgets import (
+from PySide2.QtCore import  Qt, Signal
+from PySide2.QtWidgets import (
     QLabel, 
     QGroupBox, 
     QHBoxLayout,  
@@ -48,7 +48,7 @@ class LabelSlider(QGroupBox):
     """A slider with a label to show the slider value.
     """
 
-    valueChanged = pyqtSignal()
+    valueChanged = Signal()
 
     def __init__(self,  label, values): 
         super().__init__()
@@ -141,8 +141,8 @@ class CheckBoxSlider(QGroupBox):
     and the label Values are the unique values of that tag.
     """
 
-    stateChanged = pyqtSignal()
-    valueChanged = pyqtSignal()
+    stateChanged = Signal()
+    valueChanged = Signal()
 
     def __init__(self,  label, values): 
         super().__init__()

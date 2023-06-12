@@ -1,6 +1,8 @@
 __all__ = [
     'favicon',
     'slider_icon', 
+    'animal_dog',
+    'bug',
     'application_import',
     'arrow_curve_180_left',
     'arrow_curve',
@@ -8,9 +10,12 @@ __all__ = [
     'arrow_move',
     'arrow_out',
     'arrow_resize_090',
+    'arrow_stop_090',
+    'arrow_stop_270',
     'bin_metal',
     'blue_document_export',
     'brightness',
+    'clipboard__plus',
     'color',
     'color__arrow',
     'contrast',
@@ -20,6 +25,8 @@ __all__ = [
     'cursor',
     'cutter',
     'disk',
+    'document_excel',
+    'document_excel_csv',
     'eraser',
     'eraser__arrow',
     'eraser__plus',
@@ -42,6 +49,8 @@ __all__ = [
     'magnifier_zoom_in',
     'magnifier_zoom_out',
     'minus',
+    'minus_small_circle',
+    'minus_small_white',
     'paint',
     'paint_brush',
     'paint_brush__arrow',
@@ -51,11 +60,14 @@ __all__ = [
     'paint_can__plus',
     'pencil',
     'plus',
+    'plus_small_white',
     'question_mark',
     'spectrum',
     'wand',
     'wand_hat',
     'wezel', 
+    'wezel_icon',
+    'wezel_icon_transparent',
 ]
 
 # filepaths need to be identified with importlib_resources
@@ -82,9 +94,13 @@ f = importlib_resources.files('wezel.icons.my_icons')
 favicon = str(f.joinpath('favicon.ico'))
 slider_icon = str(f.joinpath('slider_icon.png'))
 question_mark = str(f.joinpath('question-mark.png'))
+wezel_icon = str(f.joinpath('wezel-icon.png'))
+wezel_icon_transparent = str(f.joinpath('wezel-icon-transparent.png'))
 
 f = importlib_resources.files('wezel.icons.fugue_icons')
 
+animal_dog = str(f.joinpath('animal-dog.png'))
+bug = str(f.joinpath('bug.png'))
 application_import = str(f.joinpath('application-import.png'))
 arrow_curve = str(f.joinpath('arrow-curve.png'))
 arrow_curve_180_left = str(f.joinpath('arrow-curve-180-left.png'))
@@ -92,9 +108,12 @@ arrow_in = str(f.joinpath('arrow-in.png'))
 arrow_move = str(f.joinpath('arrow-move.png'))
 arrow_out = str(f.joinpath('arrow-out.png'))
 arrow_resize_090 = str(f.joinpath('arrow-resize-090.png'))
+arrow_stop_090 = str(f.joinpath('arrow-stop-090.png'))
+arrow_stop_270 = str(f.joinpath('arrow-stop-270.png'))
 bin_metal = str(f.joinpath('bin-metal.png'))
 blue_document_export = str(f.joinpath('blue-document-export.png'))
 brightness = str(f.joinpath('brightness.png'))
+clipboard__plus = str(f.joinpath('clipboard--plus.png'))
 color = str(f.joinpath('color.png'))
 color__arrow = str(f.joinpath('color--arrow.png'))
 contrast = str(f.joinpath('contrast.png'))
@@ -104,6 +123,8 @@ cross_script = str(f.joinpath('cross-script.png'))
 cursor = str(f.joinpath('cursor.png'))
 cutter = str(f.joinpath('cutter.png'))
 disk = str(f.joinpath('disk.png'))
+document_excel = str(f.joinpath('document-excel.png'))
+document_excel_csv = str(f.joinpath('document-excel-csv.png'))
 eraser = str(f.joinpath('eraser.png'))
 eraser__plus = str(f.joinpath('eraser--plus.png'))
 eraser__arrow = str(f.joinpath('eraser--arrow.png'))
@@ -126,6 +147,8 @@ magnifier_zoom_in = str(f.joinpath('magnifier-zoom-in.png'))
 magnifier_zoom_out = str(f.joinpath('magnifier-zoom-out.png'))
 magnifier_zoom_fit = str(f.joinpath('magnifier-zoom-fit.png'))
 minus = str(f.joinpath('minus.png'))
+minus_small_circle = str(f.joinpath('minus-small-circle.png'))
+minus_small_white = str(f.joinpath('minus-small-white.png'))
 paint = str(f.joinpath('paint.png'))
 paint_can__minus = str(f.joinpath('paint-can--minus.png'))
 paint_can__plus = str(f.joinpath('paint-can--plus.png'))
@@ -135,6 +158,7 @@ paint_brush__minus = str(f.joinpath('paint-brush--minus.png'))
 paint_brush__plus = str(f.joinpath('paint-brush--plus.png'))
 pencil = str(f.joinpath('pencil.png'))
 plus = str(f.joinpath('plus.png'))
+plus_small_white = str(f.joinpath('plus-small-white.png'))
 spectrum = str(f.joinpath('spectrum.png'))
 wand = str(f.joinpath('wand.png'))
 wand_hat = str(f.joinpath('wand-hat.png'))

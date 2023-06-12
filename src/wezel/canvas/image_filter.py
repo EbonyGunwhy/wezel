@@ -1,14 +1,14 @@
 import numpy as np
 
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtWidgets import QAction, QMenu, QActionGroup
-from PyQt5.QtGui import QPixmap, QCursor, QIcon
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtWidgets import QAction, QMenu, QActionGroup
+from PySide2.QtGui import QPixmap, QCursor, QIcon
 
 from wezel import canvas, icons
 
 
 class ImageWindow(canvas.FilterItem):
-    windowChanged = pyqtSignal(object, float, float, bool)
+    windowChanged = Signal(object, float, float, bool)
 
     """Change contrast
     """
@@ -28,25 +28,34 @@ class ImageWindow(canvas.FilterItem):
 
         cnvs = self.scene().parent()
         item = cnvs.imageItem
+        if item is None:
+            return
         if self._min is None:
             self._min = np.amin(item._array)
             self._max = np.amax(item._array)
+            #self._min = np.percentile(item._array, 25)
+            #self._max = np.percentile(item._array, 75)
        
         # Move 1024 to change the center over the full range
         # Speed is faster further away from the center of the range
         center = item._center 
+        array_center = (self._min + self._max)/2.0
         v0 = (self._max-self._min)/1024
         a0 = 1.0/256
-        vy = v0 + a0*abs((center - (self._min+(self._max-self._min)/2.0)))
+        #a0 = v0/256
+        #a0=0
+        vy = v0 + a0*abs((center - array_center))
         center = center + vy * dy
 
         # Changing the width is faster at larger widths
         width = item._width
         v0 = (self._max-self._min)/512
         a0 = 1.0/64
+        #a0 = v0/64
+        #a0=0
         vx = v0 + a0*width
         width = width - vx * dx
-        width = width if width>1 else 1
+        #width = width if width>1 else 1
 
         cnvs.setWindow(center, width)
         self.windowChanged.emit(item._array, center, width, True)

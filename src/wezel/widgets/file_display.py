@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import ( 
+from PySide2.QtGui import QPixmap
+from PySide2.QtWidgets import ( 
     QLabel, 
 )
 

@@ -1,6 +1,7 @@
-from wezel.core import Action, MainWidget
-from wezel.main import app
-import wezel.menu
+import wezel.gui
+from wezel.api import app
+import wezel.menubar
 import wezel.widgets
-import wezel.menus
+import wezel.displays
+import wezel.plugins
 

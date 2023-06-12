@@ -1,14 +1,14 @@
 """This module contains custom widgets for the display DICOM Series Metadata in a table."""
 
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QFileDialog, QLineEdit, QApplication,                           
-        QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QTableWidgetItem,
+from PySide2.QtCore import Qt
+from PySide2.QtWidgets import (QFileDialog, QLineEdit, QApplication,                           
+        QWidget, QVBoxLayout, QHBoxLayout, QTableWidgetItem,
         QPushButton, QLabel,  QHeaderView,  QTableWidget,  QAbstractItemView, QScrollArea)
 
 import pydicom
 import pandas as pd
-from wezel import MainWidget
+import wezel
 
 
 localStyleSheet = """
@@ -84,7 +84,7 @@ class ScrollLabel(QScrollArea):
         self.label.setText(text)
 
 
-class SeriesViewerMetaData(MainWidget):
+class SeriesViewerMetaData(wezel.gui.MainWidget):
     """Display DICOM Series Metadata in a table."""
 
     rowHeight = 4

@@ -1,6 +1,6 @@
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QBrush
-from PyQt5.QtWidgets import (                         
+from PySide2.QtCore import Qt, Signal
+from PySide2.QtGui import QIcon, QBrush
+from PySide2.QtWidgets import (                         
     QMdiArea, QWidget, QVBoxLayout, 
     QMdiSubWindow, QLabel,
 )
@@ -66,7 +66,7 @@ class MainMultipleDocumentInterface(QMdiArea):
 
 class MainMdiSubWindow(QMdiSubWindow):
 
-    closed = pyqtSignal()
+    closed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)

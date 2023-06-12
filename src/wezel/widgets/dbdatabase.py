@@ -1,5 +1,5 @@
-from PyQt5.QtCore import  Qt, pyqtSignal
-from PyQt5.QtWidgets import (
+from PySide2.QtCore import  Qt, Signal
+from PySide2.QtWidgets import (
     QAbstractItemView,
     QTreeWidget, QTreeWidgetItem, QFileSystemModel, QTreeView,
 )
@@ -7,9 +7,9 @@ from PyQt5.QtWidgets import (
 class DICOMFolderTree(QTreeWidget):
     """Displays a DICOM folder as a Tree."""
 
-    itemSelectionChanged = pyqtSignal(dict)
-    itemDoubleClicked = pyqtSignal(dict)
-    databaseSet = pyqtSignal()
+    itemSelectionChanged = Signal(dict)
+    itemDoubleClicked = Signal(dict)
+    databaseSet = Signal()
 
     def __init__(self, folder):
         super().__init__()
