@@ -1,4 +1,22 @@
-# This is the code run to create an executable
+# To develop the application
+# --------------------------
+# Navigate to a folder outside of the folder with the source code, 
+# for instance C:\Users\steve\Dropbox\Software\QIB-Sheffield\dev
+# For Mac OSX
+# python3 -m venv .venv_ibeat           
+# source .venv_ibeat/bin/activate
+# Windows
+# py -3 -m venv .venv           # create virtual environment
+# .venv/Scripts/activate        # activate virtual environment
+
+# pip install -r requirements.txt
+#
+# install editable versions of requirements under development, eg.
+# pip install -e C:\Users\steve\Dropbox\Software\QIB-Sheffield\dbdicom
+# pip install -e C:\Users\steve\Dropbox\Software\QIB-Sheffield\wezel
+# pip install -e C:\Users\steve\Dropbox\Software\QIB-Sheffield\mdreg
+# pip install -e C:\Users\steve\Dropbox\Software\dcmri
+
 
 # to build an executable:
 # -----------------------
@@ -20,6 +38,7 @@ from wezel.plugins import (
     transform,
     segment,
     align,
+    dcmri,
 )
 
 
@@ -32,6 +51,7 @@ if __name__ == "__main__":
     app.add_menu(align.menu)
     app.add_menu(transform.menu)
     app.add_menu(measure.menu)
+    app.add_menu(dcmri.menu)
     app.add_menu(wezel.menubar.about.menu)
 
     app.add_separator(menu='View', position=5)

@@ -1,4 +1,4 @@
-from dbdicom.wrappers import skimage
+from dbdicom.extensions import skimage
 from wezel.gui import Action, Menu
 from wezel.displays import TableDisplay
 

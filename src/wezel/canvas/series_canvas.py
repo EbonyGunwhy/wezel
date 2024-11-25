@@ -2,7 +2,7 @@ import timeit
 import random
 import numpy as np
 
-from dbdicom.wrappers import scipy
+from dbdicom.extensions import vreg
 
 from wezel import widgets, canvas
 from wezel.canvas.utils import colormap_to_LUT
@@ -297,7 +297,7 @@ class SeriesCanvasModel:
 
     def loadRegion(self):
         # Build list of series for all series in the same study
-        seriesList = self._series.parent().children()
+        seriesList = self._series.database().series()
         # Ask the user to select series to import as regions
         input = widgets.UserInput(
             {"label":"Import as mask:", "type":"select records", "options": seriesList}, 
@@ -312,7 +312,8 @@ class SeriesCanvasModel:
                     'name': series.instance().SeriesDescription, 
                     'color': self.newColor()}
                 # Create overlay
-                region, images = scipy.mask_array(series, on=self._series)
+                #region, images = scipy.mask_array(series, on=self._series)
+                region, images = vreg.mask_array(series, on=self._series)
                 _add_slice_groups_to(newRegion, region, images)
             except:
                 self._series.dialog.error()

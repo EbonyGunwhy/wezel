@@ -24,6 +24,8 @@ class TableDisplay(wezel.gui.MainWidget):
         
         if isinstance(df, list):
             df = pd.concat(df, ignore_index=True)
+        elif isinstance(df, dict):
+            df = pd.DataFrame(df)
         if df.empty:
             self.setError('Empty dataset. \n\n Nothing to show here..')
             return 

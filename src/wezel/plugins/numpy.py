@@ -1,4 +1,4 @@
-from dbdicom.wrappers import numpy
+from dbdicom.extensions import numpy
 from wezel.gui import Action, Menu
 
 

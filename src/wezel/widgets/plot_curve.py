@@ -4,6 +4,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 from PySide2.QtWidgets import QWidget, QVBoxLayout
 
+
+
+
 class PlotCurve(QWidget):
 
     def __init__(self):

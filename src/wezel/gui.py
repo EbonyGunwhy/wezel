@@ -11,6 +11,7 @@ from PySide2.QtGui import QIcon
 
 import dbdicom as db
 import wezel
+import sys
 
 
 # Examples of style sheets
@@ -214,6 +215,7 @@ class Main(QMainWindow):
         self.display(folder)
         self.status.hide()
 
+
     def close(self):
         """Closes the application."""
         if self.database() is None:
@@ -327,19 +329,19 @@ class Main(QMainWindow):
         widget = activeWindow.widget()
         if generation=='Instances':
             if hasattr(widget, 'instance'):
-                return [widget.instance]
+                return [widget.instance()]
         elif generation=='Series':
             if hasattr(widget, 'series'):
-                return [widget.series] # bug fix widget.series() to widget.series (idem for others)
+                return [widget.series()] 
         elif generation=='Studies':
             if hasattr(widget, 'study'):
-                return [widget.study]
+                return [widget.study()]
         elif generation=='Patients':
             if hasattr(widget, 'patient'):
-                return [widget.patient]
+                return [widget.patient()]
         elif generation=='Databases':
             if hasattr(widget, 'database'):
-                return [widget.database]
+                return [widget.database()]
         return []
         
  
@@ -498,6 +500,11 @@ class MenuBar(QMenuBar):
             menu.setupUI(app)
             self.addMenu(menu)
         self.enable()
+        
+        # On Mac - use toolbar on window to resolve installer issues
+        if sys.platform == 'darwin':
+            self.setNativeMenuBar(False)
+            self.show()
 
     def enable(self):
         for menu in self._menus:

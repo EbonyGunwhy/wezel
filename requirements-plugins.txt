@@ -1,6 +1,5 @@
 dipy
-SimpleITK
-itk-elastix
 scikit-learn
+SimpleITK-SimpleElastix
 pyvista
 pyvistaqt

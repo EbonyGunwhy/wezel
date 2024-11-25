@@ -1,5 +1,5 @@
 import numpy as np
-from dbdicom.wrappers import scipy
+from dbdicom.extensions import scipy
 
 from wezel.displays import TableDisplay, PlotDisplay
 from wezel.gui import Action, Menu
@@ -37,6 +37,9 @@ def _roi_curve(app):
     app.status.hide()
 
 
+
+
+
 def _roi_statistics(app):
     all_series = app.database().series()
     cancel, f = app.dialog.input(
@@ -58,6 +61,8 @@ def _function_of_one_series(app):
         'exp(- series)',
         'exp(+ series)',
         'integer(series)',
+        'abs(series)',
+        'a * series',
         ]
     cancel, f = app.dialog.input(
         {"label":"Operation: ", "type":"dropdownlist", "list": operation, 'value':0},
@@ -65,8 +70,17 @@ def _function_of_one_series(app):
     if cancel:
         return
     operation = operation[f[0]["value"]]
+    if operation == 'a * series':
+        cancel, g = app.dialog.input(
+            {"label":"Value of scale factor a: ", "type":"float", 'value':1.0},
+            title = "Please provide the scale factor")
+        if cancel:
+            return  
+        param = g[0]["value"]  
+    else:
+        param = None
     for series in app.selected('Series'):
-        result = scipy.series_calculator(series, operation)
+        result = scipy.series_calculator(series, operation, param=param)
         app.display(result)
     app.refresh()
 
@@ -903,6 +917,54 @@ def _uniform_filter(app):
         app.display(resized)
     app.refresh()
 
+def _uniform_filter_3d(app):
+
+    # Default settings
+    modes = ['reflect', 'constant', 'nearest', 'mirror', 'wrap']
+    size = 3
+    mode = 1
+    cval = 0.0
+    hshift = 0
+    vshift = 0
+
+    # Get user input & check if valid
+    valid = False
+    while not valid:
+        # Get input
+        cancel, f = app.dialog.input(
+            {"label":"size (of the uniform filter)", "type":"integer", "value":size, "minimum": 1},
+            {"label":"mode (of extension at border)", "type":"dropdownlist", "list": modes, "value": mode},
+            {"label":"cval (value past edges in constant mode)", "type":"float", "value":cval},
+            {"label":"horizontal shift (positive = to the left)", "type":"integer", "value":hshift},
+            {"label":"vertical shift (positive = downwards)", "type":"integer", "value":vshift},
+            title = 'Select Uniform Filter settings')
+        if cancel: 
+            return
+        # update defaults
+        size = f[0]['value']
+        mode = f[1]['value']
+        cval = f[2]['value']
+        hshift = f[3]['value']
+        vshift = f[4]['value']
+        # check validity
+        valid = (abs(hshift) < size/2.0) and (abs(vshift) < size/2.0)
+        if not valid:
+            msg = 'Invalid shift value: shifts must be less than half of the size'
+            app.dialog.information(msg, 'Invalid input value')
+
+    # Filter series
+    series = app.selected('Series')
+    for sery in series:
+        resized = scipy.uniform_filter_3d(
+            sery, 
+            size = size,
+            mode = modes[mode],
+            cval = cval,
+            origin = [hshift, vshift],
+        )
+        app.display(resized)
+    app.refresh()
+
 
 def _gaussian_filter(app):
 
@@ -932,6 +994,32 @@ def _gaussian_filter(app):
     app.refresh()
 
 
+def _gaussian_filter_3d(app):
+
+    # Get user input
+    modes = ['reflect', 'constant', 'nearest', 'mirror', 'wrap']
+    cancel, f = app.dialog.input(
+        {"label":"sigma (standard deviation for Gaussian kernel)", "type":"float", "value":2.0, "minimum": 1.0},
+        {"label":"order (0 = Gaussian, n = nth derivative of Gaussian)", "type":"integer", "value":0, "minimum": 0},
+        {"label":"mode (of extension at border)", "type":"dropdownlist", "list": modes, "value": 1},
+        {"label":"cval (value past edges in constant mode)", "type":"float", "value":0.0},
+        {"label":"truncate (at this many standard deviations)", "type":"float", "value":4.0, "minimum": 1.0},
+        title = 'Select Gaussian Filter settings')
+    if cancel: 
+        return
+
+    # Filter series
+    series = app.selected('Series')
+    for sery in series:
+        resized = scipy.gaussian_filter_3d(
+            sery, f[0]['value'],
+            order = f[1]['value'],
+            mode = modes[f[2]['value']],
+            cval = f[3]['value'],
+            truncate = f[4]['value'],
+        )
+        app.display(resized)
+    app.refresh()
 
 
 
@@ -970,8 +1058,10 @@ action_percentile_filter = Action('Percentile filter', on_clicked=_percentile_fi
 action_rank_filter = Action('Rank filter', on_clicked=_rank_filter, is_clickable=_if_a_series_is_selected)
 action_maximum_filter = Action('Maximum filter', on_clicked=_maximum_filter, is_clickable=_if_a_series_is_selected)
 action_minimum_filter = Action('Minimum filter', on_clicked=_minimum_filter, is_clickable=_if_a_series_is_selected)
-action_uniform_filter = Action('Uniform filter', on_clicked=_uniform_filter, is_clickable=_if_a_series_is_selected)
-action_gaussian_filter = Action('Gaussian filter', on_clicked=_gaussian_filter, is_clickable=_if_a_series_is_selected)
+action_uniform_filter = Action('Uniform filter (2D)', on_clicked=_uniform_filter, is_clickable=_if_a_series_is_selected)
+action_uniform_filter_3d = Action('Uniform filter (3D)', on_clicked=_uniform_filter_3d, is_clickable=_if_a_series_is_selected)
+action_gaussian_filter = Action('Gaussian filter (2D)', on_clicked=_gaussian_filter, is_clickable=_if_a_series_is_selected)
+action_gaussian_filter_3d = Action('Gaussian filter (3D)', on_clicked=_gaussian_filter_3d, is_clickable=_if_a_series_is_selected)
 
 menu_roi = Menu('Region')
 menu_roi.add(action_roi_curve)
@@ -999,6 +1089,7 @@ menu_reslice.add(action_reslice_sagittal)
 
 menu_filter = Menu('Filter')
 menu_filter.add(action_gaussian_filter)
+menu_filter.add(action_gaussian_filter_3d)
 menu_filter.add_separator()
 menu_filter.add(action_median_filter)
 menu_filter.add(action_percentile_filter)
@@ -1006,6 +1097,7 @@ menu_filter.add(action_rank_filter)
 menu_filter.add(action_maximum_filter)
 menu_filter.add(action_minimum_filter)
 menu_filter.add(action_uniform_filter)
+#menu_filter.add(action_uniform_filter_3d) # has a bug
 menu_filter.add_separator()
 menu_filter.add(action_gaussian_gradient_magnitude_filter)
 menu_filter.add(action_gaussian_laplace_filter)

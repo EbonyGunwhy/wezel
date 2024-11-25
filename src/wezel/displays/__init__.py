@@ -12,6 +12,7 @@ from .series_display import (
 )
 from .plot_display import (
     PlotDisplay,
+    MatplotLibDisplay,
 )
 from .table_display import (
     TableDisplay,

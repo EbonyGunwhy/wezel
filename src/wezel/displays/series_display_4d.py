@@ -92,7 +92,7 @@ class SeriesDisplay4D(wezel.gui.MainWidget):
     def series(self):
         return self.canvas._model._series
 
-    def setSeries(self, series, sortby=['SliceLocation', 'AcquisitionTime'], xoffset=True):
+    def setSeries(self, series, sortby=['SliceLocation', 'InstanceNumber'], xoffset=True):
         if series.instances() == []:
             self.setError('Series ' + series.label() + ' is empty. \n\n Nothing to show here..')
             return

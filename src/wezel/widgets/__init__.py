@@ -41,4 +41,5 @@ from .region_list import (
 )
 from .file_display import (
     ImageLabel,
+    MatplotLib,
 )

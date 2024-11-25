@@ -5,7 +5,7 @@ import pyvista as pv
 from pyvistaqt import QtInteractor
 from PySide2.QtWidgets import QVBoxLayout
 from wezel.gui import Action, MainWidget
-from dbdicom.wrappers import scipy
+from dbdicom.extensions import vreg
 
 
 class SurfaceDisplay(MainWidget):
@@ -56,11 +56,13 @@ class SurfaceDisplay(MainWidget):
         layout.addWidget(self.plotter)
         self.setLayout(layout)
 
+    def series(self):
+        return self._series
 
     def setSeries(self, series, color=0, opacity=1.0, triangulate=False):
 
         # Save for reuse
-        self.series = series
+        self._series = series
         if series is None:
             return
 
@@ -84,7 +86,7 @@ class SurfaceDisplay(MainWidget):
         # If there are multiple volumes, show only the first one
         arr, _ = series.array('SliceLocation', pixels_first=True, first_volume=True)
 
-        series.status.message('Preprocessing mask...')
+        series.message('Preprocessing mask...')
 
         # Scale in the range [0,1] so it can be treated as mask
         max = np.amax(arr)
@@ -101,7 +103,8 @@ class SurfaceDisplay(MainWidget):
         series.status.message('Displaying surface...')
 
         # Extracting surface
-        self.grid = pv.UniformGrid(dimensions=array.shape, spacing=spacing)
+        #self.grid = pv.ImageData(dimensions=array.shape, spacing=spacing)
+        self.grid = pv.ImageData(dimensions=array.shape, spacing=spacing)
         surf = self.grid.contour([0.5], array.flatten(order="F"), method='marching_cubes')
         if triangulate:
             surf = surf.reconstruct_surface()
@@ -138,10 +141,10 @@ class SurfaceDisplay(MainWidget):
 
         if series is None:
             return
-        if self.series is None:
+        if self._series is None:
             return
         
-        arr, _ = scipy.mask_array(series, on=self.series)
+        arr, _ = vreg.mask_array(series, on=self._series)
         if isinstance(arr, list):
             msg = 'Cannot display reference as a single volume \n'
             msg += 'This series contains multiple slice groups.'
