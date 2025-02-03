@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wezel"
-version = "0.1.2"
+version = "0.1.4"
 dependencies = [
   "PySide2", # move to PySide6??
   "dbdicom",
