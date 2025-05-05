@@ -1,10 +1,10 @@
 import timeit
 import numpy as np
-from PySide2.QtCore import Signal, Qt
-from PySide2.QtWidgets import (QToolBar,
-    QAction, QComboBox, QPushButton, QLabel, 
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtWidgets import (QToolBar,
+    QComboBox, QPushButton, QLabel, 
     QWidget, QDoubleSpinBox, QHBoxLayout, QVBoxLayout)
-from PySide2.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QAction, QIcon, QPixmap
 
 from wezel import icons
 

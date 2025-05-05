@@ -1,9 +1,9 @@
 import sys
 import logging
 
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import QApplication
-from PySide2.QtGui import QIcon
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
 
 import wezel
 
@@ -78,7 +78,7 @@ class Wezel:
         # self.main.setMenuBar(self.menubar)
         # self.main.show()
         self.main.setEnabled(True)
-        self.QApp.exec_()
+        self.QApp.exec()
 
     def open(self, path):
         self.main.open(path)

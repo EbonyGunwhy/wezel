@@ -1,13 +1,12 @@
-from PySide2.QtCore import Signal, Qt
-from PySide2.QtWidgets import (
+from PySide6.QtCore import Signal, Qt
+from PySide6.QtWidgets import (
     QWidget, 
     QMainWindow, 
-    QAction, 
     QMenu, 
     QMenuBar, 
     QDockWidget, 
     QMessageBox) 
-from PySide2.QtGui import QIcon
+from PySide6.QtGui import QAction, QIcon
 
 import dbdicom as db
 import wezel

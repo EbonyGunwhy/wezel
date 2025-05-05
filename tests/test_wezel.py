@@ -3,7 +3,7 @@ import os
 import shutil
 import timeit
 import numpy as np
-from PySide2.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication, QWidget
 import dbdicom as db
 import wezel
 from wezel import widgets, canvas
@@ -82,7 +82,7 @@ def test_DICOMFolderTree(interactive = True):
     window.itemDoubleClicked.connect(lambda record: print('Double click on ' + record['label']))
     if interactive:
         window.show()
-        app.exec_()
+        app.exec()
 
     print('Time for buiding display (sec)', stop-start)
 
@@ -105,7 +105,7 @@ def test_SeriesSliders(interactive = True):
     
     if interactive:
         window.show()
-        app.exec_()
+        app.exec()
 
     remove_tmp_database(tmp)
 
@@ -124,7 +124,7 @@ def test_SelectImageColorMap(interactive = True):
     if interactive:
         print('Original color map: ', images[0].colormap)
         window.show()
-        app.exec_()
+        app.exec()
         print('New color map (check): ', images[0].colormap)
     else:
         assert images[0].colormap == 'Greens'
@@ -146,7 +146,7 @@ def test_ImageBrightness(interactive = True):
     if interactive:
         print('Original brightness: ', images[0].WindowCenter)
         window.show()
-        app.exec_()
+        app.exec()
         print('New brightness (check): ', images[0].WindowCenter)
     else:
         window.raise_()
@@ -168,7 +168,7 @@ def test_ImageContrast(interactive = True):
     
     if interactive:
         window.show()
-        app.exec_()
+        app.exec()
         print('New contrast (check): ', images[0].WindowWidth)
     else:
         assert images[0].WindowWidth == 100
@@ -188,7 +188,7 @@ def test_PixelValueLabel(interactive = True):
     
     if interactive:
         window.show()
-        app.exec_()
+        app.exec()
 
     remove_tmp_database(tmp)
 
@@ -208,7 +208,7 @@ def test_ImageColors(interactive = True):
     
     if interactive:
         window.show()
-        app.exec_()
+        app.exec()
         print(
             'New color settings (check): ', 
             images[0].colormap, 
@@ -243,7 +243,7 @@ def test_Canvas(interactive=True):
     toolBar.show()
 
     if interactive:
-        app.exec_()
+        app.exec()
     else:
         cnvs.raise_()
 
@@ -279,7 +279,7 @@ def test_SeriesCanvas(interactive = True):
     # seriesCanvas2.show()
 
     if interactive:
-        app.exec_()
+        app.exec()
 
     database.restore()
     #remove_tmp_database(tmp_rider)

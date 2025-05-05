@@ -1,6 +1,6 @@
-from PySide2.QtCore import Qt, Signal
-from PySide2.QtGui import QIcon, QBrush
-from PySide2.QtWidgets import (                         
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QIcon, QBrush
+from PySide6.QtWidgets import (                         
     QMdiArea, QWidget, QVBoxLayout, 
     QMdiSubWindow, QLabel,
 )

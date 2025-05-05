@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 name = "wezel"
 version = "0.1.4"
 dependencies = [
-  "PySide2", # move to PySide6??
+  "PySide6", 
   "dbdicom",
   "matplotlib", # for plotting curves and creating colormaps
   "numpy",
@@ -74,10 +74,10 @@ keywords = ['python', "medical imaging", "Graphical User Interface"]
 
 # Excluding 3.11 for now as some packages don't have wheels yet
 # Example scikit-image (coming in the next version)
-requires-python = ">=3.7, <3.11" # remove restriction?
+#requires-python = ">=3.7, <3.11" # remove restriction?
 
 [project.urls]
-"Homepage" = "https://github.com/QIB-Sheffield/wezel"
+"Homepage" = "https://github.com/openmiblab/wezel"
 
 
 [tool.setuptools]
@@ -91,13 +91,6 @@ include-package-data = true
 where = ["src"]
 
 [project.optional-dependencies]
-# docs = [
-#     "sphinx",
-#     "sphinx_rtd_theme",
-#     "myst-parser", 
-#     "sphinx-copybutton",
-#     "sphinx-remove-toctrees",
-# ]
 plugins = [
   "dipy",
   "SimpleITK",

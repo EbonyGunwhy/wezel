@@ -1,7 +1,6 @@
-from PySide2.QtGui import QIcon
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import (
-    QAction,
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QWidget, 
     QComboBox, QToolBar, 
     QHBoxLayout, QVBoxLayout)

@@ -1,6 +1,6 @@
-from PySide2.QtCore import Qt, QRectF
-from PySide2.QtWidgets import QGraphicsObject, QGraphicsItem, QAction, QMenu, QPushButton
-from PySide2.QtGui import QPixmap, QCursor, QIcon, QColor, QPen, QTransform
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtWidgets import QGraphicsObject, QGraphicsItem, QMenu, QPushButton
+from PySide6.QtGui import QPixmap, QCursor, QIcon, QColor, QPen, QTransform, QAction
 
 from wezel import canvas, icons
 

@@ -1,5 +1,5 @@
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import (    
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (    
     QDialog, 
     QFormLayout, 
     QDialogButtonBox, 
@@ -161,7 +161,7 @@ class UserInput(QDialog):
 
         self.layout.addRow("", self.buttonBox)
         self.setLayout(self.layout)
-        self.exec_()  
+        self.exec()  
         self.cancel = self.button=='Cancel'
         self.values = self._processOutput()
 

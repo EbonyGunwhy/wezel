@@ -104,6 +104,8 @@ class SeriesCanvas(canvas.Canvas):
 
     def saveMask(self):
         self._model.setMask(self.maskItem.bin())
+        # if self.maskItem is not None:
+        #     self._model.setMask(self.maskItem.bin())
 
     def setCurrentRegion(self, index):
         self.saveMask()
@@ -293,7 +295,7 @@ class SeriesCanvasModel:
         series.status.hide()
         #print(timeit.default_timer()-start)
         return databaseUpdated
-
+    
 
     def loadRegion(self):
         # Build list of series for all series in the same study
@@ -306,33 +308,57 @@ class SeriesCanvasModel:
             return
         # Overlay each of the selected series on the displayed series
         for series in input.values[0]:
-            try:
-                # Add new region
-                newRegion = {
-                    'name': series.instance().SeriesDescription, 
-                    'color': self.newColor()}
-                # Create overlay
-                # REPLACE USING vreg package
-                region, images = vreg.mask_array(series, on=self._series)
-                _add_slice_groups_to(newRegion, region, images)
-            except:
-                self._series.dialog.error()
-            else:
-                self._regions.append(newRegion)
-                self._currentRegion = newRegion
+            # Get mask values
+            regions, images = vreg.mask_array(series, on=self._series)
+            # Add new region
+            newRegion = {
+                'name': series.instance().SeriesDescription, 
+                'color': self.newColor(),
+            }
+            # Create overlay
+            for r, region in enumerate(regions):
+                newRegion[images[r].SOPInstanceUID] = region
+            self._regions.append(newRegion)
+            self._currentRegion = newRegion
 
-def _add_slice_groups_to(newRegion, region, images):
-    if isinstance(region, list): 
-        # If self._series has multiple slice groups
-        for r, reg in enumerate(region):
-            _add_to(newRegion, reg, images[r])
-    else:
-        # Single slice group only
-        _add_to(newRegion, region, images)
 
-def _add_to(newRegion, region, images):
-    for i, image in np.ndenumerate(images):
-        if image is not None:
-            mask = region[:,:,i[0],i[1]] 
-            if np.count_nonzero(mask) > 0:
-                newRegion[image.SOPInstanceUID] = mask != 0
+#     def loadRegion(self):
+#         # Build list of series for all series in the same study
+#         seriesList = self._series.database().series()
+#         # Ask the user to select series to import as regions
+#         input = widgets.UserInput(
+#             {"label":"Import as mask:", "type":"select records", "options": seriesList}, 
+#             title = "Please select regions to load")
+#         if input.cancel:
+#             return
+#         # Overlay each of the selected series on the displayed series
+#         for series in input.values[0]:
+#             try:
+#                 # Add new region
+#                 newRegion = {
+#                     'name': series.instance().SeriesDescription, 
+#                     'color': self.newColor()}
+#                 # Create overlay
+#                 region, images = vreg.mask_array(series, on=self._series)
+#                 _add_slice_groups_to(newRegion, region, images)
+#             except:
+#                 self._series.dialog.error()
+#             else:
+#                 self._regions.append(newRegion)
+#                 self._currentRegion = newRegion
+
+# def _add_slice_groups_to(newRegion, region, images):
+#     if isinstance(region, list): 
+#         # If self._series has multiple slice groups
+#         for r, reg in enumerate(region):
+#             _add_to(newRegion, reg, images[r])
+#     else:
+#         # Single slice group only
+#         _add_to(newRegion, region, images)
+
+# def _add_to(newRegion, region, images):
+#     for i, image in np.ndenumerate(images):
+#         if image is not None:
+#             mask = region[:,:,i[0],i[1]] 
+#             if np.count_nonzero(mask) > 0:
+#                 newRegion[image.SOPInstanceUID] = mask != 0

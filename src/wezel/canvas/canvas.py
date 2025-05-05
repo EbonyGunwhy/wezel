@@ -3,10 +3,10 @@ import numpy as np
 import copy
 
 
-from PySide2.QtCore import Qt, Signal, QRectF
-from PySide2.QtWidgets import (QGraphicsObject, QGraphicsItem,
-    QAction, QMenu, QGraphicsView, QGraphicsScene, QActionGroup)
-from PySide2.QtGui import QPixmap, QBrush, QIcon, QTransform, QCursor, QImage
+from PySide6.QtCore import Qt, Signal, QRectF
+from PySide6.QtWidgets import (QGraphicsObject, QGraphicsItem,
+    QMenu, QGraphicsView, QGraphicsScene)
+from PySide6.QtGui import QActionGroup, QAction, QPixmap, QBrush, QIcon, QTransform, QCursor, QImage
 
 from wezel import canvas, icons
 from wezel.canvas.utils import colormap_to_LUT

@@ -1,10 +1,10 @@
 import pandas as pd
 
-from PySide2.QtCore import Qt, Signal
-from PySide2.QtWidgets import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QPushButton,
     )
-from PySide2.QtGui import QIcon
+from PySide6.QtGui import QIcon
 
 from wezel import widgets, icons
 
