@@ -14,6 +14,7 @@ class SeriesCanvas(canvas.Canvas):
         self._model = SeriesCanvasModel()
 
     def slotMaskChanged(self):
+        print('seriesCanvas.slotMaskChanged')
         if self._model._regions == []:
             self._model.addRegion()
             clr = self.maskItem.color()

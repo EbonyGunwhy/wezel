@@ -101,7 +101,7 @@ class RegionList(QWidget):
     def _newRegion(self):
         self.canvas.addRegion()
         self.setView()
-        
+
     def _deleteRegion(self): # deletes it from the list 
         self.canvas.removeCurrentRegion()
         self.setView()

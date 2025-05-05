@@ -286,11 +286,20 @@ def test_SeriesCanvas(interactive = True):
     #remove_tmp_database(tmp_skull_ct)
 
 
+def test_interactive():
+    RESULTSPATH = "C:\\Users\\md1spsx\\Documents\\Results"
+    DATASET = 'MEDCIC_02_Visit1Scan1'
+    wzl = wezel.app()
+    wzl.open(os.path.join(RESULTSPATH, DATASET))
+    wzl.use()
+
+
 if __name__ == "__main__":
 
     interactive=True
 
-    test_launch()
+    test_interactive()
+    # test_launch()
     # test_DICOMFolderTree(interactive)
     # test_SeriesSliders(interactive)
     # test_SelectImageColorMap(interactive)

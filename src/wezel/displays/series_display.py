@@ -71,7 +71,6 @@ class SeriesDisplay(wezel.gui.MainWidget):
         image = self.sliders.image
         if image is None:
             return
-        
         array, vals = image.pixel_values(return_vals=ATTR)
         if array is None:
             self.setError("Series ' + series.label() + ' does not contain "

@@ -40,6 +40,7 @@ class Canvas(QGraphicsView):
     def removeItem(self, item):
         if item is not None:
             self.scene().removeItem(item)
+            
 
     @property
     def imageItem(self):
@@ -76,12 +77,13 @@ class Canvas(QGraphicsView):
     def setMask(self, mask, color=0, opacity=0.5):
         self.removeItem(self.maskItem)
         if self.toolBar is not None:
-            #opacity = self.toolBar.opacity()
             opacity = self.toolBar.actionOpacity.opacity()
-        item = MaskItem(self.imageItem, mask, opacity=opacity, color=color)
-        item.setZValue(1)
-        item.maskChanged.connect(self.slotMaskChanged)
-        return item
+        # MaskItem needs to be retained in an attribute for some reason
+        # Gets deleted otherwise
+        self._maskItem = MaskItem(self.imageItem, mask, opacity=opacity, color=color)
+        self._maskItem.setZValue(1)
+        self._maskItem.maskChanged.connect(self.slotMaskChanged)
+        return self._maskItem
 
     def slotMaskChanged(self):
         if self.toolBar is not None:
