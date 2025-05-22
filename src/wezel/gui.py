@@ -604,10 +604,10 @@ class Action(QAction):
             pass
             #return
         self._app = app
-        # try:
-        #     self.triggered.disconnect()
-        # except RuntimeError:
-        #     pass # no slots were connected
+        try:
+            self.triggered.disconnect()
+        except:
+            pass # no slots were connected
         self.triggered.connect(self._run)
         self.setText(self._text)
         if self._icon is not None: 
