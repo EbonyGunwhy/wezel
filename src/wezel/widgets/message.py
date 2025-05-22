@@ -1,8 +1,8 @@
 import traceback
 
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QCursor, QPixmap
-from PySide2.QtWidgets import (    
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QCursor, QPixmap
+from PySide6.QtWidgets import (    
     QApplication,                          
     QStatusBar, 
     QProgressBar, 
@@ -51,7 +51,7 @@ class Dialog():
         msg.setInformativeText(detail)
         msg.setDetailedText(traceback.format_exc())
         msg.setStandardButtons(QMessageBox.Ok)
-        retval = msg.exec_() # value of pressed message box button
+        retval = msg.exec() # value of pressed message box button
 
     def directory(self, message='Please select a folder', datafolder=None):
         """
@@ -73,7 +73,7 @@ class Dialog():
         # dialog = QFileDialog()
         # dialog.setFileMode(QFileDialog.ExistingFiles)
         # #dialog.setNameFilter("Images (*.png *.xpm *.jpg)")
-        # dialog.exec_()
+        # dialog.exec()
         # return dialog.selectedFiles()
         # This selects files only - ideally want to select files and directories
         # This may be a solution 

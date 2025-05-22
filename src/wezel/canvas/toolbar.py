@@ -1,10 +1,10 @@
 import numpy as np
 
-from PySide2.QtWidgets import (
+from PySide6.QtWidgets import (
     QWidget, QGridLayout, 
-    QToolBar, QAction, QMenu,
-    QActionGroup, QFrame)
-from PySide2.QtGui import QIcon
+    QToolBar, QMenu,
+     QFrame)
+from PySide6.QtGui import QAction, QActionGroup, QIcon
 
 from wezel import canvas, icons, widgets
 

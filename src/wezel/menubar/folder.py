@@ -76,7 +76,8 @@ def restore_database(app):
 
 
 def close_database(app):
-    closed = app.database().close()
+    database = app.database()
+    closed = database.close()
     if closed: 
         app.close()
 

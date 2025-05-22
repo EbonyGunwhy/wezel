@@ -4,9 +4,9 @@ import cv2 as cv2
 import skimage
 from scipy import ndimage as ndi
 
-from PySide2.QtCore import Qt, QRectF, QPointF
-from PySide2.QtWidgets import QAction, QMenu, QActionGroup
-from PySide2.QtGui import QPixmap, QCursor, QIcon, QColor, QPen
+from PySide6.QtCore import Qt, QRectF, QPointF
+from PySide6.QtWidgets import QMenu
+from PySide6.QtGui import QAction, QActionGroup, QPixmap, QCursor, QIcon, QColor, QPen
 
 from wezel import canvas, icons
 

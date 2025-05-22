@@ -1,8 +1,8 @@
 """This module contains custom widgets for the display DICOM Series Metadata in a table."""
 
 
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import (QFileDialog, QLineEdit, QApplication,                           
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (QFileDialog, QLineEdit, QApplication,                           
         QWidget, QVBoxLayout, QHBoxLayout, QTableWidgetItem,
         QPushButton, QLabel,  QHeaderView,  QTableWidget,  QAbstractItemView, QScrollArea)
 
@@ -147,7 +147,8 @@ class SeriesViewerMetaData(wezel.gui.MainWidget):
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode(QHeaderView.AdjustToContentsOnFirstShow))
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+       # header.setSectionResizeMode(3, QHeaderView.ResizeMode(QHeaderView.AdjustToContentsOnFirstShow))
 
 
     # Too slow

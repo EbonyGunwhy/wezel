@@ -1,7 +1,7 @@
-# https://stackoverflow.com/questions/47342158/porting-range-slider-widget-to-PySide2
+# https://stackoverflow.com/questions/47342158/porting-range-slider-widget-to-PySide6
 
 import sys, os
-from PySide2 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets
 
 __all__ = ['QRangeSlider']
 
@@ -310,4 +310,4 @@ if __name__ == '__main__':
     rs.setRange(15, 35)
     rs.setBackgroundStyle('background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #222, stop:1 #333);')
     rs.handle.setStyleSheet('background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #282, stop:1 #393);')
-    app.exec_()
+    app.exec()

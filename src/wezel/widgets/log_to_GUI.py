@@ -5,8 +5,8 @@ on the GUI from a calculation running in its own thread.
 import sys
 import datetime
 import traceback
-from PySide2.QtCore import (QObject, QRunnable, QThreadPool, Signal, Slot)
-from PySide2.QtWidgets import (QVBoxLayout, QWidget, QPlainTextEdit)
+from PySide6.QtCore import (QObject, QRunnable, QThreadPool, Signal, Slot)
+from PySide6.QtWidgets import (QVBoxLayout, QWidget, QPlainTextEdit)
 
 import wezel
 import time

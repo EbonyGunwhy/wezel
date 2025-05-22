@@ -3,7 +3,7 @@ import numpy as np
 import scipy.ndimage as ndi
 import pyvista as pv
 from pyvistaqt import QtInteractor
-from PySide2.QtWidgets import QVBoxLayout
+from PySide6.QtWidgets import QVBoxLayout
 from wezel.gui import Action, MainWidget
 from dbdicom.extensions import vreg
 
